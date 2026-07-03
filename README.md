@@ -20,6 +20,10 @@ auto s = add(0xFFFFFFFFu, 1u, of); // of == true, s saturates to UINT32_MAX
 
 Header-only, standard-library only.
 
+## Dependencies
+
+**None** — header-only, standard library only.
+
 ## Build / test
 ```sh
 cmake -B build && cmake --build build && ctest --test-dir build
