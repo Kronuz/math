@@ -1,5 +1,7 @@
 # math
 
+[![CI](https://github.com/Kronuz/math/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/math/actions/workflows/ci.yml)
+
 Small integer-math helpers extracted from
 [Xapiand](https://github.com/Kronuz/Xapiand):
 
