@@ -1,39 +1,76 @@
 # math
 
 [![CI](https://github.com/Kronuz/math/actions/workflows/ci.yml/badge.svg)](https://github.com/Kronuz/math/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
+![Header-only](https://img.shields.io/badge/header--only-yes-green.svg)
 
-Small integer-math helpers extracted from
-[Xapiand](https://github.com/Kronuz/Xapiand):
+Small integer-math helpers for C++20: a modulo that is always non-negative, and
+add and subtract that detect unsigned overflow and saturate.
 
-- `modulus(val, mod)` -- a **mathematically correct** modulo whose result is always
-  in `[0, mod)`, unlike C++`s `%` (which keeps the sign of the dividend, so
-  `-1 % 3 == -1`). `modulus(-1, 3) == 2`. Throws on a non-positive modulus.
-- `add(x, y, overflow)` / `sub(x, y, overflow)` -- wrap-around-detecting add/sub for
-  **unsigned** types; on overflow they set the flag and saturate to the type max/min.
-- `min<T>(accuracy)` / `max<T>(accuracy)` -- the representable range for a bucketed
-  accuracy list (specialized for `double` / `long`).
+## ✨ Highlights
+
+- **`modulus(-1, 3) == 2`**, where C++'s `%` gives `-1`. A non-positive modulus
+  throws.
+- **`add` and `sub`** on unsigned types set an overflow flag and saturate to the
+  type's maximum or minimum.
+- **`min<T>` and `max<T>`** for a bucketed accuracy list.
+- **One header, no dependencies.**
+
+## 📦 Installation
+
+Requires a C++20 compiler; CMake 3.14 or newer for the CMake route. CI builds it
+on Linux (x86_64, arm64), macOS (arm64, x86_64), and FreeBSD, plus ASan, UBSan,
+and TSan builds.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(math
+  GIT_REPOSITORY https://github.com/Kronuz/math.git
+  GIT_TAG        main)
+FetchContent_MakeAvailable(math)
+
+target_link_libraries(my_app PRIVATE math::math)
+```
+
+## 🚀 Quick start
 
 ```cpp
 #include "math.hh"
-auto m = modulus(-7, 3);          // 2
-bool of = false;
-auto s = add(0xFFFFFFFFu, 1u, of); // of == true, s saturates to UINT32_MAX
+
+#include <cassert>
+
+int main() {
+	assert(modulus(-7, 3) == 2);
+
+	bool overflow = false;
+	auto sum = add(0xFFFFFFFFu, 1u, overflow);   // saturates
+	assert(overflow && sum == 0xFFFFFFFFu);
+}
 ```
 
-Header-only, standard-library only.
+## 🎯 When to use it
 
-## Dependencies
+- ✅ Wrapping indexes into rings, and counters that must not wrap silently.
+- ❌ Signed overflow checks: `add` and `sub` are for unsigned types.
 
-**None** — header-only, standard library only.
+## 📚 Documentation
 
-## Build / test
+- [ARCHITECTURE.md](ARCHITECTURE.md): each helper's contract.
+- [AGENTS.md](AGENTS.md): repository map and traps.
+
+## 🛠️ Building and testing
+
 ```sh
 cmake -B build && cmake --build build && ctest --test-dir build
 ```
 
-## Use (FetchContent)
-```cmake
-FetchContent_Declare(math GIT_REPOSITORY https://github.com/Kronuz/math.git GIT_TAG main)
-FetchContent_MakeAvailable(math)
-target_link_libraries(your_app PRIVATE math::math)
-```
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Read [AGENTS.md](AGENTS.md) first. CI must
+pass on every platform.
+
+## 📄 License
+
+MIT, Copyright (c) 2015-2019 Dubalu LLC. See [LICENSE](LICENSE). Extracted from
+[Xapiand](https://github.com/Kronuz/Xapiand).
