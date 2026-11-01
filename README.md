@@ -14,13 +14,14 @@ at its limit instead of wrapping around.
 
 ## ✨ Highlights
 
-- **`modulus(-1, 3) == 2`**, where C++'s `%` gives `-1`. A negative modulus
-  throws `std::invalid_argument`.
+- **`modulus(-1, 3) == 2`**, where C++'s `%` gives `-1`. A modulus that is not
+  positive (zero or negative) throws `std::invalid_argument`.
 - **`add` and `sub`** on unsigned types set an overflow flag and saturate to the
-  type's maximum or minimum.
+  type's maximum or minimum. The flag is sticky: they never clear it, so one flag
+  covers a chain of calls.
 - **`min<T>` and `max<T>`** give the range an accuracy list covers: twice its
   last entry, negated for `min`, clamped to `long`, `long long` or their
-  unsigned forms; `double` gets its numeric limits.
+  unsigned forms; `double` gets its lowest and highest finite values.
 - **One header, no dependencies.**
 
 ## 🚀 Quick start
@@ -69,17 +70,14 @@ Not for:
 - **Signed overflow checks.** `add` and `sub` test `x + y < x`, which detects
   wrap-around for unsigned types only; on signed types the overflow is undefined
   behavior.
-- **A zero modulus.** Only a negative modulus throws; `modulus(v, 0)` divides by
-  zero.
-- **A flag that resets itself.** `add` and `sub` set `overflow` on wrap-around
-  and leave it alone otherwise, so start it at `false`.
-- **The lowest `double`.** `min<double>` returns
-  `std::numeric_limits<double>::min()`, the smallest positive normal value.
+- **A flag that reports one call.** `overflow` stays set once a call sets it, so
+  start it at `false`, and use a fresh flag to learn about a single call.
 
 ## 📚 Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md): each helper's contract.
 - [AGENTS.md](AGENTS.md): repository map and traps.
+- [CHANGELOG.md](CHANGELOG.md): dated changes.
 - [Kronuz C++ Libraries](https://github.com/Kronuz/cpp-libraries/blob/main/AGENTS.md#math): the catalog entry.
 
 ## 🛠️ Building and testing

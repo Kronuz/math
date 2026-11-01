@@ -8,5 +8,8 @@ non-negative), overflow-detecting `add`/`sub`, and `min`/`max<T>(accuracy)`.
   first three, which Xapiand had been supplying transitively.
 - `add`/`sub` overflow detection (`x + y < x`) is a wrap-around test valid for
   UNSIGNED types only (signed overflow is UB). Do not use them on signed types.
-- `modulus` throws `std::invalid_argument` on a non-positive modulus.
-- `test/test.cc` covers the modulo sign behavior and unsigned overflow saturation.
+- `modulus` throws `std::invalid_argument` on a non-positive modulus, zero included.
+- `add`/`sub` never clear the overflow flag (it is sticky).
+- `min<double>` is `numeric_limits<double>::lowest()`.
+- `test/test.cc` covers the modulo (a brute-force oracle, zero and negative moduli), the sticky
+  overflow flag with unsigned saturation, and the `min`/`max` ranges.

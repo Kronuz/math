@@ -30,9 +30,10 @@
 #include <vector>            // for std::vector (min/max over an accuracy list)
 
 
+// The mathematical modulo: the result is in [0, mod). Throws std::invalid_argument unless mod > 0.
 template<typename T, typename M, typename = std::enable_if_t<std::is_integral<std::decay_t<T>>::value && std::is_integral<std::decay_t<M>>::value>>
 inline M modulus(T val, M mod) {
-	if (mod < 0) {
+	if (!(mod > 0)) {
 		throw std::invalid_argument("Modulus must be positive");
 	}
 	if (val < 0) {
@@ -44,6 +45,8 @@ inline M modulus(T val, M mod) {
 }
 
 
+// On wrap-around `overflow` is set and the result saturates; otherwise `overflow` is left as it
+// is, never cleared, so one flag collects the outcome of a chain of operations.
 template<typename T>
 inline T
 add(T x, T y, bool& overflow)
@@ -59,11 +62,12 @@ template<typename T>
 inline T
 add(T x, T y)
 {
-	bool overflow;
+	bool overflow = false;
 	return add(x, y, overflow);
 }
 
 
+// As add: sets `overflow` on wrap-around and saturates to the minimum; never clears it.
 template<typename T>
 inline T
 sub(T x, T y, bool& overflow)
@@ -79,7 +83,7 @@ template<typename T>
 inline T
 sub(T x, T y)
 {
-	bool overflow;
+	bool overflow = false;
 	return sub(x, y, overflow);
 }
 
@@ -90,11 +94,12 @@ T min(const std::vector<uint64_t>& accuracy);
 template<typename T>
 T max(const std::vector<uint64_t>& accuracy);
 
+// The range ends are the lowest and the highest finite double.
 template<>
 inline double
 min<double>(const std::vector<uint64_t>&)
 {
-	return std::numeric_limits<double>::min();
+	return std::numeric_limits<double>::lowest();
 }
 
 template<>
