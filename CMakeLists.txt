@@ -23,4 +23,14 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
 	add_executable(math_test test/test.cc)
 	target_link_libraries(math_test PRIVATE math)
 	add_test(NAME math COMMAND math_test)
+
+	# The same test under UBSan (aborting on the first report): the lowest value of a signed type
+	# must not be negated, and narrow types must not overflow in a shift or a conversion.
+	if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+		add_executable(math_test_ubsan test/test.cc)
+		target_link_libraries(math_test_ubsan PRIVATE math)
+		target_compile_options(math_test_ubsan PRIVATE -g -O1 -fsanitize=undefined -fno-sanitize-recover=all)
+		target_link_options(math_test_ubsan PRIVATE -fsanitize=undefined)
+		add_test(NAME math_ubsan COMMAND math_test_ubsan)
+	endif()
 endif()

@@ -6,8 +6,10 @@ non-negative), overflow-detecting `add`/`sub`, and `min`/`max<T>(accuracy)`.
 - Header-only, standard-library only. Self-contained includes (`<cstdint>`,
   `<limits>`, `<vector>`, `<type_traits>`, `<stdexcept>`) -- the extraction added the
   first three, which Xapiand had been supplying transitively.
-- `add`/`sub` overflow detection (`x + y < x`) is a wrap-around test valid for
-  UNSIGNED types only (signed overflow is UB). Do not use them on signed types.
+- `add`/`sub` overflow detection (`x + y < x`, formed in `T`) is a wrap-around test valid for
+  UNSIGNED types of every width (signed overflow is UB). Do not use them on signed types.
+- `modulus` computes on unsigned values (the magnitude of a negative `val`), never negating
+  `val`: `INT_MIN` has no positive counterpart. `math_ubsan` runs the test under UBSan.
 - `modulus` throws `std::invalid_argument` on a non-positive modulus, zero included.
 - `add`/`sub` never clear the overflow flag (it is sticky).
 - `min<double>` is `numeric_limits<double>::lowest()`.

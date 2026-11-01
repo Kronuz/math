@@ -26,36 +26,56 @@
 #include <cstdint>           // for uint64_t
 #include <limits>            // for std::numeric_limits
 #include <stdexcept>         // for std::invalid_argument
-#include <type_traits>       // for std::enable_if_t, std::decay_t, std::is_integral
+#include <type_traits>       // for std::enable_if_t, std::decay_t, std::is_integral, std::make_unsigned_t
 #include <vector>            // for std::vector (min/max over an accuracy list)
 
 
+namespace math_detail {
+
+// The unsigned type of the same width (bool, which has none, is a byte).
+template<typename T> struct unsigned_of { using type = std::make_unsigned_t<T>; };
+template<> struct unsigned_of<bool> { using type = unsigned char; };
+
+}  // namespace math_detail
+
+
 // The mathematical modulo: the result is in [0, mod). Throws std::invalid_argument unless mod > 0.
+// It is computed on unsigned values, in the wider of the two types: the magnitude of a negative
+// `val` is taken there (-val does not fit for the lowest value of a signed type), and a `val`
+// outside the range of `mod`'s type is reduced before it is converted.
 template<typename T, typename M, typename = std::enable_if_t<std::is_integral<std::decay_t<T>>::value && std::is_integral<std::decay_t<M>>::value>>
 inline M modulus(T val, M mod) {
+	using UT = typename math_detail::unsigned_of<T>::type;
+	using UM = typename math_detail::unsigned_of<M>::type;
+	using U = std::common_type_t<UT, UM>;
 	if (!(mod > 0)) {
 		throw std::invalid_argument("Modulus must be positive");
 	}
-	if (val < 0) {
-		val = -val;
-		auto m = static_cast<M>(val) % mod;
-		return m ? mod - m : m;
+	const U m = static_cast<U>(mod);
+	if constexpr (std::is_signed<T>::value) {
+		if (val < 0) {
+			const U magnitude = static_cast<U>(static_cast<UT>(UT(0) - static_cast<UT>(val)));
+			const U r = magnitude % m;
+			return static_cast<M>(r ? m - r : 0);
+		}
 	}
-	return static_cast<M>(val) % mod;
+	return static_cast<M>(static_cast<U>(val) % m);
 }
 
 
 // On wrap-around `overflow` is set and the result saturates; otherwise `overflow` is left as it
-// is, never cleared, so one flag collects the outcome of a chain of operations.
+// is, never cleared, so one flag collects the outcome of a chain of operations. The sum is formed
+// in T: a type narrower than int (uint8_t, uint16_t) is promoted by `+`, which would never wrap.
 template<typename T>
 inline T
 add(T x, T y, bool& overflow)
 {
-	if (x + y < x) {
+	const T sum = static_cast<T>(x + y);
+	if (sum < x) {
 		overflow = true;
 		return std::numeric_limits<T>::max();
 	}
-	return x + y;
+	return sum;
 }
 
 template<typename T>
@@ -72,11 +92,12 @@ template<typename T>
 inline T
 sub(T x, T y, bool& overflow)
 {
-	if (x - y > x) {
+	const T difference = static_cast<T>(x - y);
+	if (difference > x) {
 		overflow = true;
 		return std::numeric_limits<T>::min();
 	}
-	return x - y;
+	return difference;
 }
 
 template<typename T>

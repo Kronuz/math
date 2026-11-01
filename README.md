@@ -67,8 +67,9 @@ wrapping silently.
 
 Not for:
 
-- **Signed overflow checks.** `add` and `sub` test `x + y < x`, which detects
-  wrap-around for unsigned types only; on signed types the overflow is undefined
+- **Signed overflow checks.** `add` and `sub` test the sum or difference in the
+  type itself, which detects wrap-around for unsigned types of every width
+  (`uint8_t` and `uint16_t` included); on signed types the overflow is undefined
   behavior.
 - **A flag that reports one call.** `overflow` stays set once a call sets it, so
   start it at `false`, and use a fresh flag to learn about a single call.

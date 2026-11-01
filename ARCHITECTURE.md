@@ -8,10 +8,13 @@ Each function is a few lines; the value is in getting the edge cases right.
 - **`modulus(val, mod)`** — the mathematical modulo, always in `[0, mod)`. C++'s `%`
   keeps the sign of the dividend (`-1 % 3 == -1`); `modulus` folds negatives back into
   range (`modulus(-1, 3) == 2`). Throws `std::invalid_argument` on a non-positive
-  modulus, zero included.
+  modulus, zero included. It computes on unsigned values in the wider of the two types, so
+  the lowest value of a signed type (`INT_MIN`, whose negation does not fit) and a `val`
+  outside the range of a narrower modulus type give the residue.
 - **`add(x, y, overflow)` / `sub(x, y, overflow)`** — wrap-around-detecting add/sub.
   The check (`x + y < x`) is a genuine wrap test **for unsigned types only** (signed
-  overflow is UB); on overflow the flag is set and the result saturates to the type's
+  overflow is UB), formed in the type itself (`uint8_t` and `uint16_t` are promoted to
+  `int` by `+`, which would never wrap); on overflow the flag is set and the result saturates to the type's
   max / min. The flag is sticky: a call that does not overflow leaves it as it found
   it, so `add(add(a, b, o), c, o)` reports the overflow of either call, and the
   caller starts the flag at `false`.
